@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en" data-lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bhoomi — Crop Recommendation System</title>
+<meta name="theme-color" content="#164C2E">
+<link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+<link rel="icon" href="{{ url_for('static', filename='icons/icon-192.png') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="leaf">🌾</span>
+      <span>Bhoomi
+        <small><span data-en>Crop Recommendation System</span><span data-hi>Fasal Sujhaav Pranali</span></small>
+      </span>
+    </div>
+    <div class="topbar-actions">
+      <div class="lang-toggle">
+        <button id="langEn" class="active" onclick="setLang('en')">EN</button>
+        <button id="langHi" onclick="setLang('hi')">हिं</button>
+      </div>
+      <button class="icon-btn" id="installBtn" title="Install app" style="display:none">⬇</button>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-eyebrow"><span data-en>Soil → Season → Yield</span><span data-hi>Mitti → Mausam → Fasal</span></div>
+  <h1>
+    <span data-en>Grow with <em>data</em>, not guesswork.</span>
+    <span data-hi>Anuman nahi, <em>data</em> se kheti karein.</span>
+  </h1>
+  <p class="lede">
+    <span data-en>Enter your soil's N‑P‑K, pH, and local climate readings — a Random Forest model trained on 2,200+ Indian field samples recommends the best-fit crop, instantly.</span>
+    <span data-hi>Apni mitti ka N‑P‑K, pH aur mausam ka data daalein — 2,200+ samples par trained Random Forest model turant sabse behtar fasal batayega.</span>
+  </p>
+</section>
+
+<main class="layout">
+  <!-- LEFT COLUMN -->
+  <div>
+    <div class="card">
+      <h2>🧪 <span data-en>Soil &amp; Climate Input</span><span data-hi>Mitti aur Mausam Data</span></h2>
+      <p class="sub"><span data-en>All values as used in your dataset (kg/ha for N-P-K, mm for rainfall).</span><span data-hi>Sabhi values dataset ke hisaab se (N-P-K kg/ha mein, rainfall mm mein).</span></p>
+
+      <form id="predictForm">
+        <div class="field-grid">
+          <div class="field">
+            <label>N — <span data-en>Nitrogen</span><span data-hi>Nitrogen</span> <span class="unit">kg/ha</span></label>
+            <input type="number" step="any" name="N" required value="90">
+          </div>
+          <div class="field">
+            <label>P — <span data-en>Phosphorus</span><span data-hi>Phosphorus</span> <span class="unit">kg/ha</span></label>
+            <input type="number" step="any" name="P" required value="42">
+          </div>
+          <div class="field">
+            <label>K — <span data-en>Potassium</span><span data-hi>Potassium</span> <span class="unit">kg/ha</span></label>
+            <input type="number" step="any" name="K" required value="43">
+          </div>
+          <div class="field">
+            <label><span data-en>Temperature</span><span data-hi>Tapmaan</span> <span class="unit">°C</span></label>
+            <input type="number" step="any" name="temperature" required value="20.9">
+          </div>
+          <div class="field">
+            <label><span data-en>Humidity</span><span data-hi>Namee</span> <span class="unit">%</span></label>
+            <input type="number" step="any" name="humidity" required value="82">
+          </div>
+          <div class="field">
+            <label><span data-en>Soil pH</span><span data-hi>Mitti pH</span></label>
+            <input type="number" step="any" name="ph" required value="6.5">
+          </div>
+          <div class="field" style="grid-column: 1 / -1">
+            <label><span data-en>Rainfall</span><span data-hi>Varsha</span> <span class="unit">mm</span></label>
+            <input type="number" step="any" name="rainfall" required value="203">
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button type="submit" class="btn btn-primary" id="predictBtn">
+            🔍 <span data-en>Recommend Crop</span><span data-hi>Fasal Sujhaav Dein</span>
+          </button>
+          <button type="button" class="btn btn-secondary" id="useWeatherBtn">
+            🌦️ <span data-en>Use live weather</span><span data-hi>Live mausam bharein</span>
+          </button>
+        </div>
+      </form>
+
+      <div class="result" id="resultBox">
+        <div class="result-head">
+          <div class="result-emoji" id="resEmoji">🌱</div>
+          <div>
+            <div class="result-crop" id="resCrop">—</div>
+            <div class="result-conf"><span data-en>Confidence</span><span data-hi>Vishwaas star</span>: <span id="resConf">0</span>%</div>
+          </div>
+        </div>
+
+        <div class="gauge-wrap">
+          <svg class="gauge" viewBox="0 0 100 100" id="gaugeSvg">
+            <circle cx="50" cy="50" r="42" fill="none" stroke="#F1ECDF" stroke-width="10"/>
+            <circle cx="50" cy="50" r="42" fill="none" stroke="#1F6F43" stroke-width="10"
+                    stroke-linecap="round" id="gaugeArc" stroke-dasharray="264" stroke-dashoffset="264"
+                    transform="rotate(-90 50 50)"/>
+            <text x="50" y="56" text-anchor="middle" font-family="IBM Plex Mono" font-size="18" fill="#21261F" id="gaugeText">0%</text>
+          </svg>
+          <div class="top3" id="top3Box"></div>
+        </div>
+
+        <div class="calendar-mini" id="calMini"></div>
+
+        <div class="btn-row">
+          <button type="button" class="btn btn-secondary" id="downloadPdfBtn">📄 <span data-en>Download PDF report</span><span data-hi>PDF report download karein</span></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🗺️ <span data-en>Crop Calendar</span><span data-hi>Fasal Calendar</span></h2>
+      <p class="sub"><span data-en>Season-wise sowing &amp; harvest windows for all 22 crops.</span><span data-hi>Sabhi 22 fasalon ka season ke hisaab se bona-katna samay.</span></p>
+      <div class="calendar-grid" id="calendarGrid"></div>
+    </div>
+  </div>
+
+  <!-- RIGHT COLUMN -->
+  <div>
+    <div class="card">
+      <h2>🌦️ <span data-en>Live Weather</span><span data-hi>Live Mausam</span></h2>
+      <div class="weather-search">
+        <input type="text" id="weatherCity" placeholder="City name (e.g. Ghaziabad)">
+        <button class="btn btn-primary" id="weatherSearchBtn" style="padding:9px 16px">Go</button>
+      </div>
+      <div class="weather-box" id="weatherBox">
+        <span class="empty-note" data-en>Search a city or allow location access.</span>
+        <span class="empty-note" data-hi>Shehar search karein ya location allow karein.</span>
+      </div>
+      <div class="weather-note" data-en>Needs a free OpenWeatherMap API key set as OWM_API_KEY on the server.</div>
+      <div class="weather-note" data-hi>Server par free OpenWeatherMap API key (OWM_API_KEY) set honi chahiye.</div>
+    </div>
+
+    <div class="card">
+      <h2>📊 <span data-en>Analytics Dashboard</span><span data-hi>Analytics Dashboard</span></h2>
+      <div class="stat-row">
+        <div class="stat-pill"><div class="num" id="statTotal">0</div><div class="lbl"><span data-en>Total runs</span><span data-hi>Kul Predictions</span></div></div>
+        <div class="stat-pill"><div class="num" id="statTop">—</div><div class="lbl"><span data-en>Most recommended</span><span data-hi>Sabse zyada</span></div></div>
+      </div>
+      <canvas id="analyticsChart" height="200"></canvas>
+    </div>
+
+    <div class="card">
+      <h2>📋 <span data-en>Prediction History</span><span data-hi>Prediction History</span></h2>
+      <p class="sub"><span data-en>Last 10 — stored locally in your browser.</span><span data-hi>Aakhri 10 — aapke browser mein (localStorage) saved.</span></p>
+      <ul class="history-list" id="historyList">
+        <li class="empty-note"><span data-en>No predictions yet.</span><span data-hi>Abhi tak koi prediction nahi.</span></li>
+      </ul>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <span data-en>Built by Krishna Sharma · RandomForest model · Flask + vanilla JS</span>
+  <span data-hi>Krishna Sharma dwara banaya gaya · RandomForest model · Flask + JS</span>
+</footer>
+
+<!-- Chatbot -->
+<button class="chat-fab" id="chatFab" title="Farming Assistant">💬</button>
+<div class="chat-panel" id="chatPanel">
+  <div class="chat-head">🌱 <span data-en>Farming Assistant</span><span data-hi>Kheti Sahayak</span></div>
+  <div class="chat-body" id="chatBody"></div>
+  <div class="chat-input-row">
+    <input type="text" id="chatInput" placeholder="Type your question...">
+    <button id="chatSend">➤</button>
+  </div>
+</div>
+
+<script>
+  window.CROP_CALENDAR_URL = "/api/crop-calendar";
+</script>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
