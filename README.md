@@ -67,27 +67,6 @@ Rice, Maize, Chickpea, Kidney Beans, Pigeon Peas, Moth Beans, Mung Bean, Black G
 
 ---
 
-## ⚙️ Setup
-
-git clone https://github.com/your-username/BhoomiAI.git
-cd BhoomiAI
-
-python -m venv venv
-source venv/bin/activate      # Windows: venv\Scripts\activate
-
-pip install -r requirements.txt
-
-export OWM_API_KEY="your_key_here"     # Windows: set OWM_API_KEY=your_key_here
-
-python app.py
-
-Open http://127.0.0.1:5000 in your browser.
-
-To retrain the model from scratch (only needed if you change the dataset):
-python train_model.py
-
----
-
 ## 📁 Project Structure
 
 BhoomiAI/
